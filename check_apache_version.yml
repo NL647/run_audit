@@ -1,0 +1,52 @@
+---
+- name: Check and Update Apache Version
+  hosts: all
+  vars:
+    script_name: "check_apache_version"
+    result_dir: "/tmp/results"
+    result_file: "{{ result_dir }}/{{ script_name }}_{{ ansible_date_time.date }}.csv"
+  tasks:
+    - name: Get installed Apache version
+      ansible.builtin.command: apache2 -v
+      register: apache_version
+
+    - name: Collect Apache version results
+      ansible.builtin.lineinfile:
+        path: /tmp/results.csv
+        line: "{{ inventory_hostname }}, Apache version: {{ apache_version.stdout_lines | join(' ') }}"
+        create: yes
+        state: present
+
+    - name: Ensure Apache is up to date
+      ansible.builtin.apt:
+        name: apache2
+        state: latest
+
+    - name: Copy results to Ansible server
+      ansible.builtin.fetch:
+        src: /tmp/results.csv
+        dest: "{{ result_file }}"
+        flat: yes
+
+    - name: Remove results from remote servers
+      ansible.builtin.file:
+        path: /tmp/results.csv
+        state: absent
+
+  post_tasks:
+    - name: Create lists of hosts based on exit codes
+      ansible.builtin.shell: |
+        awk -F, '$3 == "0" {print $1} > {{ result_dir }}/success_hosts.txt; \
+        awk -F, '$3 != "0" {print $1} > {{ result_dir }}/failed_hosts.txt; \
+        echo $(wc -l < {{ result_dir }}/success_hosts.txt) > {{ result_dir }}/success_count.txt; \
+        echo $(wc -l < {{ result_dir }}/failed_hosts.txt) > {{ result_dir }}/failed_count.txt'
+      run_once: true
+      delegate_to: localhost
+
+    - include_role:
+        name: common
+      tasks_from: send_email
+
+    - include_role:
+        name: common
+      tasks_from: send_rocketchat

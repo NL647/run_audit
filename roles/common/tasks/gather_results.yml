@@ -1,0 +1,11 @@
+---
+- name: Copy results to local machine
+  ansible.builtin.fetch:
+    src: "/tmp/{{ result_file }}"
+    dest: "{{ playbook_dir }}/results/"
+    flat: yes
+
+- name: Remove results from remote servers
+  ansible.builtin.file:
+    path: "/tmp/{{ result_file }}"
+    state: absent

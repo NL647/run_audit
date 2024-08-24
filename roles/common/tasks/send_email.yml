@@ -1,0 +1,22 @@
+---
+- name: Send email with results
+  ansible.builtin.mail:
+    host: smtp.yourserver.com
+    port: 587
+    username: "{{ smtp_username }}"
+    password: "{{ smtp_password }}"
+    to: "recipient@example.com"
+    subject: "{{ script_name }} finished"
+    body: |
+      The script "{{ script_name }}" has been executed on all hosts.
+
+      Number of Successful Hosts: {{ lookup('file', result_dir + '/success_count.txt') }}
+      Number of Failed Hosts: {{ lookup('file', result_dir + '/failed_count.txt') }}
+
+      Successful Hosts (OK):
+      {{ lookup('file', result_dir + '/success_hosts.txt') }}
+
+      Failed Hosts (KO):
+      {{ lookup('file', result_dir + '/failed_hosts.txt') }}
+    attach:
+      - "{{ result_file }}"

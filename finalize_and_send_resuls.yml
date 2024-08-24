@@ -1,0 +1,21 @@
+---
+- name: Finalize and Send Results
+  hosts: localhost
+  vars:
+    result_dir: "/tmp/results"
+    final_results_file: "{{ result_dir }}/final_results.csv"
+  tasks:
+    - name: Aggregate all CSV files into final_results.csv
+      ansible.builtin.command: >
+        cat {{ result_dir }}/*.csv > {{ final_results_file }}
+      run_once: true
+
+    - include_role:
+        name: common
+      tasks_from: send_email
+      vars:
+        final_results_file: "{{ final_results_file }}"
+
+    - include_role:
+        name: common
+      tasks_from: send_rocketchat

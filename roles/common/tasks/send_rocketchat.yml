@@ -1,0 +1,17 @@
+---
+- name: Send Rocket.Chat alert
+  ansible.builtin.uri:
+    url: "{{ rocket_chat_webhook }}"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+    body: >
+      {
+        "text": "The script {{ script_name }} has been executed on all hosts. \n \
+        Number of Successful Hosts: {{ lookup('file', result_dir + '/success_count.txt') }} \n \
+        Number of Failed Hosts: {{ lookup('file', result_dir + '/failed_count.txt') }} \n \
+        Successful Hosts (OK): {{ lookup('file', result_dir + '/success_hosts.txt') }} \n \
+        Failed Hosts (KO): {{ lookup('file', result_dir + '/failed_hosts.txt') }}"
+      }
+    body_format: json
+    status_code: 200

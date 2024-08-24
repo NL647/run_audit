@@ -1,0 +1,47 @@
+---
+- name: Get User Info
+  hosts: all
+  vars:
+    script_name: "get_user_info"
+    result_dir: "/tmp/results"
+    result_file: "{{ result_dir }}/{{ script_name }}_{{ ansible_date_time.date }}.csv"
+  tasks:
+    - name: Get username and password expiry date
+      ansible.builtin.command: chage -l root
+      register: user_info
+
+    - name: Collect user info results
+      ansible.builtin.lineinfile:
+        path: /tmp/results.csv
+        line: "{{ inventory_hostname }},Username: root, Password Expiry: {{ user_info.stdout | regex_search('Password expires.*', '\\1') }}"
+        create: yes
+        state: present
+
+    - name: Copy results to Ansible server
+      ansible.builtin.fetch:
+        src: /tmp/results.csv
+        dest: "{{ result_file }}"
+        flat: yes
+
+    - name: Remove results from remote servers
+      ansible.builtin.file:
+        path: /tmp/results.csv
+        state: absent
+
+  post_tasks:
+    - name: Create lists of hosts based on exit codes
+      ansible.builtin.shell: |
+        awk -F, '$3 == "0" {print $1} > {{ result_dir }}/success_hosts.txt; \
+        awk -F, '$3 != "0" {print $1} > {{ result_dir }}/failed_hosts.txt; \
+        echo $(wc -l < {{ result_dir }}/success_hosts.txt) > {{ result_dir }}/success_count.txt; \
+        echo $(wc -l < {{ result_dir }}/failed_hosts.txt) > {{ result_dir }}/failed_count.txt'
+      run_once: true
+      delegate_to: localhost
+
+    - include_role:
+        name: common
+      tasks_from: send_email
+
+    - include_role:
+        name: common
+      tasks_from: send_rocketchat
