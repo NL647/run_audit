@@ -57,10 +57,4 @@
         run_once: true
         delegate_to: localhost
 
-      - include_role:
-          name: common
-        tasks_from: send_email
 
-      - include_role:
-          name: common
-        tasks_from: send_rocketchat
