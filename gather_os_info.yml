@@ -32,35 +32,35 @@
         path: /tmp/results.csv
         state: absent
 
- post_tasks:
-    - name: Create success hosts list
-      ansible.builtin.shell: |
-        awk -F, '$3 == "0" {print $1}' > {{ result_dir }}/success_hosts.txt
-      run_once: true
-      delegate_to: localhost
+  post_tasks:
+      - name: Create success hosts list
+        ansible.builtin.shell: |
+          awk -F, '$3 == "0" {print $1}' > {{ result_dir }}/success_hosts.txt
+        run_once: true
+        delegate_to: localhost
 
-    - name: Create failed hosts list
-      ansible.builtin.shell: |
-        awk -F, '$3 != "0" {print $1}' > {{ result_dir }}/failed_hosts.txt
-      run_once: true
-      delegate_to: localhost
+      - name: Create failed hosts list
+        ansible.builtin.shell: |
+          awk -F, '$3 != "0" {print $1}' > {{ result_dir }}/failed_hosts.txt
+        run_once: true
+        delegate_to: localhost
 
-    - name: Count success hosts
-      ansible.builtin.shell: |
-        wc -l < {{ result_dir }}/success_hosts.txt > {{ result_dir }}/success_count.txt
-      run_once: true
-      delegate_to: localhost
+      - name: Count success hosts
+        ansible.builtin.shell: |
+          wc -l < {{ result_dir }}/success_hosts.txt > {{ result_dir }}/success_count.txt
+        run_once: true
+        delegate_to: localhost
 
-    - name: Count failed hosts
-      ansible.builtin.shell: |
-        wc -l < {{ result_dir }}/failed_hosts.txt > {{ result_dir }}/failed_count.txt
-      run_once: true
-      delegate_to: localhost
+      - name: Count failed hosts
+        ansible.builtin.shell: |
+          wc -l < {{ result_dir }}/failed_hosts.txt > {{ result_dir }}/failed_count.txt
+        run_once: true
+        delegate_to: localhost
 
-    - include_role:
-        name: common
-      tasks_from: send_email
+      - include_role:
+          name: common
+        tasks_from: send_email
 
-    - include_role:
-        name: common
-      tasks_from: send_rocketchat
+      - include_role:
+          name: common
+        tasks_from: send_rocketchat
