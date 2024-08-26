@@ -1,17 +1,17 @@
----
+---   
 - name: Send Rocket.Chat alert
-  ansible.builtin.uri:
-    url: "{{ rocket_chat_webhook }}"
-    method: POST
-    headers:
-      Content-Type: "application/json"
-    body: >
-      {
-        "text": "The script {{ script_name }} has been executed on all hosts. \n \
-        Number of Successful Hosts: {{ lookup('file', result_dir + '/success_count.txt') }} \n \
-        Number of Failed Hosts: {{ lookup('file', result_dir + '/failed_count.txt') }} \n \
-        Successful Hosts (OK): {{ lookup('file', result_dir + '/success_hosts.txt') }} \n \
-        Failed Hosts (KO): {{ lookup('file', result_dir + '/failed_hosts.txt') }}"
-      }
-    body_format: json
-    status_code: 200
+  community.general.rocketchat:
+    token: hooks/66acad6c9b8a3e2fbeddd4d1/4MTnoqLehHGg6xkz7XT4ASniZTaSYvX45CFNTdL9HiBgjwwS
+    domain: rocketchat.neotiq.com
+    attachments:
+      - text: Display my system load on host A and B
+        color: #ff00dd
+        title: System load
+        fields:
+          - title: System A
+            value: 'load average: 0,74, 0,66, 0,63'
+            short: true
+          - title: System B
+            value: 'load average: 5,16, 4,64, 2,43'
+            short: true
+  delegate_to: localhost
