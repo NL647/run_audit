@@ -32,15 +32,7 @@
         path: /tmp/results.csv
         state: absent
 
-  post_tasks:
-    - name: Create lists of hosts based on exit codes
-      ansible.builtin.shell: |
-        awk -F, '$3 == "0" {print $1} > {{ result_dir }}/success_hosts.txt; \
-        awk -F, '$3 != "0" {print $1} > {{ result_dir }}/failed_hosts.txt; \
-        echo $(wc -l < {{ result_dir }}/success_hosts.txt) > {{ result_dir }}/success_count.txt; \
-        echo $(wc -l < {{ result_dir }}/failed_hosts.txt) > {{ result_dir }}/failed_count.txt'
-      run_once: true
-      delegate_to: localhost
+
 
     - include_role:
         name: common
